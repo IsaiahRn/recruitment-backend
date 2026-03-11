@@ -1,6 +1,4 @@
-# Backend README
-
-## Overview
+# Overview
 
 This backend powers the recruitment platform for three user roles:
 
@@ -9,16 +7,6 @@ This backend powers the recruitment platform for three user roles:
 - Super Admin
 
 It is built as a Spring Boot + Kotlin service with PostgreSQL as the primary database, Redis for caching/session-related concerns, and optional Kafka for asynchronous application lifecycle events.
-
-The current design follows one important rule:
-
-- API success depends on **database success**
-- API success does **not** depend on Kafka success
-
-That means:
-- if the database write succeeds, the API should return success
-- Kafka is treated as event propagation, not the main transaction boundary
-
 ---
 
 ## Features and User Flows
@@ -76,126 +64,7 @@ The platform simulates:
 - **NESA API**  
   Used to populate grade and option attended after entering the same National ID
 
----
-
-## Architecture
-
-### High-Level Structure
-
-The local development architecture is intentionally simplified for stability:
-
-- `recruitment-service` → main API
-- PostgreSQL → primary relational database
-- Redis / Valkey → cache / token / app support
-- Kafka → optional event propagation
-- Frontend talks directly to the backend API
-- No Nginx in the local setup
-- No API gateway in the deployment-critical local path unless explicitly enabled
-
-### Design Principles
-
-- Modular monolith structure
-- Role-based access control (RBAC)
-- DTO-first API responses
-- Validation at API boundaries
-- Sensitive-field encryption at rest
-- Kafka is non-blocking and optional
-- Local runtime is optimized for simplicity and reduced moving parts
-
-### Event Design
-Kafka is used only where asynchronous propagation is useful, for example:
-
-- application lifecycle events
-- audit/event streams
-- future notifications or analytics
-
-But the backend is designed so:
-- slow Kafka must not hang the request
-- unavailable Kafka must not fail the request if DB commit succeeded
-
----
-
-## Tools Used and Why
-
-### Core Backend Stack
-- **Kotlin**
-  - Main backend language
-  - Used for controllers, services, DTOs, repositories, configuration
-
-- **Spring Boot**
-  - Main application framework
-  - Used for REST APIs, dependency injection, configuration, security, validation
-
-- **Spring Security**
-  - Used for authentication and authorization
-  - Protects endpoints based on user roles
-
-- **JWT**
-  - Used for stateless authentication
-  - Access and refresh token model
-
-- **Spring Data JPA / Hibernate**
-  - Used for ORM and data persistence
-  - Maps Kotlin entities to PostgreSQL tables
-
-- **PostgreSQL**
-  - Primary relational database
-  - Stores users, applicant profiles, applications, documents metadata, audit data
-
-- **Redis / Valkey**
-  - Used for caching and app support
-  - Can also support token/session-related concerns
-
-### Messaging
-- **Kafka**
-  - Used for asynchronous application lifecycle events
-  - Not required for API success path
-
-### API and Developer Experience
-- **Spring Validation / Jakarta Validation**
-  - Used for request validation
-
-- **OpenAPI / Swagger**
-  - Used for API documentation
-
-- **Mockito**
-  - Used for backend unit testing
-
-### Security and Data Protection
-- **Field Encryption**
-  - Used for encrypting sensitive applicant fields at rest
-
-- **RBAC**
-  - Role-based access control for Super Admin, HR, and Applicant
-
-### Deployment and Runtime
-- **Docker**
-  - Used for local containerized backend runtime
-  - Helps package the backend consistently
-
-- **Docker Compose**
-  - Used to run backend dependencies locally
-  - Coordinates PostgreSQL, Redis, and optionally Kafka
-
-### Future / Optional Enterprise Components
-Depending on environment or future expansion:
-- Eureka
-- ELK stack
-- API gateway
-- Blue/green or rolling deployment strategies
-
----
-
 ## Local Run Guide
-
-## Prerequisites
-
-Install:
-- Docker Desktop
-- Java 21 (optional if running only with Docker)
-- Gradle (optional if running only with Docker)
-
----
 
 ## 1. Go to backend directory
 
@@ -238,8 +107,8 @@ docker compose up --build
 
 This should start:
 - PostgreSQL
-- Redis / Valkey
-- Kafka (if enabled in compose)
+- Redis
+- Kafka
 - recruitment-service
 
 ---
@@ -249,7 +118,7 @@ This should start:
 Open:
 
 ```text
-http://localhost:8081/actuator/health
+https://rate-limiter-backend-6yj5.onrender.com/actuator/health
 ```
 
 If you expose the backend through another local port, use that instead.
@@ -261,7 +130,7 @@ If you expose the backend through another local port, use that instead.
 If Swagger is enabled:
 
 ```text
-http://localhost:8081/swagger-ui/index.html
+https://rate-limiter-backend-6yj5.onrender.com/swagger-ui/swagger-ui/index.html
 ```
 
 ---
@@ -276,8 +145,6 @@ cd backend/recruitment-service
 Make sure PostgreSQL and Redis are already running.
 
 ---
-
-## Important Local Notes
 
 ### Kafka
 For local testing, Kafka can be disabled:
@@ -309,26 +176,3 @@ No real government API credentials are required.
 ### Applicant
 - Username: `applicant01`
 - Password: `Password@123`
-
----
-
-## Production Notes
-
-For production-like deployment:
-- use managed Postgres
-- use managed Redis / Valkey
-- optionally enable Kafka
-- store all secrets in environment variables or secret manager
-- enable health checks
-- use rolling or blue/green deployment strategy
-- keep API success independent from Kafka availability
-
----
-
-## Current Testing Assumptions
-
-This project is optimized for:
-- test/demo environment
-- smooth local setup
-- minimal downtime deployments
-- no hard dependency on Kafka for request success
