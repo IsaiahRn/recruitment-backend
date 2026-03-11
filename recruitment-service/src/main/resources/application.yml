@@ -1,10 +1,12 @@
 server:
-  port: 8081
+  port: ${PORT:8081}
   shutdown: graceful
+  forward-headers-strategy: framework
 
 spring:
   application:
     name: recruitment-service
+
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/recruitment}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
@@ -15,11 +17,12 @@ spring:
       connection-timeout: 2000
       idle-timeout: 30000
       max-lifetime: 600000
+
   data:
     redis:
-      host: ${SPRING_DATA_REDIS_HOST:localhost}
-      port: ${SPRING_DATA_REDIS_PORT:6379}
+      url: ${SPRING_DATA_REDIS_URL:redis://localhost:6379}
       timeout: 2s
+
   jpa:
     open-in-view: false
     hibernate:
@@ -31,13 +34,16 @@ spring:
         format_sql: false
         show_sql: false
         default_batch_fetch_size: 50
+
   servlet:
     multipart:
       max-file-size: 5MB
       max-request-size: 6MB
+
   flyway:
     enabled: true
     baseline-on-migrate: true
+
   kafka:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     consumer:
@@ -46,6 +52,7 @@ spring:
 
 eureka:
   client:
+    enabled: ${EUREKA_CLIENT_ENABLED:false}
     service-url:
       defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
 
@@ -65,8 +72,12 @@ management:
       show-details: always
 
 app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000}
+
   storage:
     base-dir: ${APP_STORAGE_BASE_DIR:./uploads}
+
   security:
     jwt:
       secret: ${APP_SECURITY_JWT_SECRET:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}
@@ -76,6 +87,8 @@ app:
     data-hash-secret: ${APP_SECURITY_DATA_HASH_SECRET:development-hash-secret-change-me}
     authenticator:
       issuer: ${APP_SECURITY_AUTHENTICATOR_ISSUER:Recruitment Platform}
+
   kafka:
+    enabled: ${APP_KAFKA_ENABLED:false}
     topics:
-      application-events: application-events
+      application-events: ${APP_KAFKA_TOPIC_APPLICATION_EVENTS:application-events}
